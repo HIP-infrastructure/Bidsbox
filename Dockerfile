@@ -15,23 +15,24 @@ LABEL app_version=$APP_VERSION
 LABEL app_tag=$TAG
 
 WORKDIR /apps/${APP_NAME}
-
-RUN apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install --no-install-recommends -y \ 
-    git python3 python3-pip python3-venv && \
-    git clone https://github.com/HIP-infrastructure/Bidsificator.git && \
-    python3 -m venv .env && \
-    . .env/bin/activate && \
-    pip install -r Bidsificator/requirements.txt && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update -qy && \
+    apt-get install --no-install-recommends -qy \
+    git python3 python3-pip \
+    # lib necessary to have a working pyqt application \
+    libxcb-icccm4 libxcb-randr0 libxcb-render-util0 \
+    libxcb-shape0 libxcursor1 libxkbcommon-x11-0 \
+    libxcb-keysyms1 libglib2.0-0 libdbus-1-3 fontconfig \
+    libfontconfig1 libxcb-image0 libxcb-util1 && \
+    # install using pip and git \
+    pip install --no-cache git+https://github.com/HIP-infrastructure/Bidsificator/@v${APP_VERSION}#egg=Bidsificator && \
     apt-get remove -y --purge git && \
-    apt-get autoremove -y --purge && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get autoremove -y --purge
 
 ENV APP_SPECIAL="no"
-ENV APP_CMD="python3 /apps/${APP_NAME}/Bidsificator/main.py"
-ENV PROCESS_NAME="Bidsificator"
+ENV APP_CMD="bidsificator"
+ENV PROCESS_NAME="bidsificator"
 ENV APP_DATA_DIR_ARRAY=""
 ENV DATA_DIR_ARRAY=""
 
