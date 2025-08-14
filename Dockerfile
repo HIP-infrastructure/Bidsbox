@@ -20,15 +20,17 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update -qy && \
     apt-get install --no-install-recommends -qy \
     git python3 python3-pip \
-    # lib necessary to have a working pyqt application \
+    # libs necessary to have a working pyqt application \
     libxcb-icccm4 libxcb-randr0 libxcb-render-util0 \
     libxcb-shape0 libxcursor1 libxkbcommon-x11-0 \
     libxcb-keysyms1 libglib2.0-0 libdbus-1-3 fontconfig \
-    libfontconfig1 libxcb-image0 libxcb-util1 && \
+    libfontconfig1 libxcb-image0 libxcb-util1 libxcb-cursor0 && \
     # install using pip and git \
     pip install --no-cache git+https://github.com/HIP-infrastructure/Bidsificator/@v${APP_VERSION}#egg=Bidsificator && \
     apt-get remove -y --purge git && \
-    apt-get autoremove -y --purge
+    apt-get autoremove -y --purge && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 ENV APP_SPECIAL="no"
 ENV APP_CMD="bidsificator"
