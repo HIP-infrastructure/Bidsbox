@@ -19,18 +19,23 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update -qy && \
     apt-get install --no-install-recommends -qy \
-    git python3 python3-pip python3-venv \
+    git software-properties-common gnupg \
     # libs necessary to have a working pyqt application \
     libxcb-icccm4 libxcb-randr0 libxcb-render-util0 \
     libxcb-shape0 libxcursor1 libxkbcommon-x11-0 \
     libxcb-keysyms1 libglib2.0-0 libdbus-1-3 fontconfig \
     libfontconfig1 libxcb-image0 libxcb-util1 libxcb-cursor0 && \
+    # Bidsificator >=1.12.0 requires Python >=3.11 (numpy ^2.4); the base image ships 3.10, \
+    # so pull a newer interpreter from deadsnakes \
+    add-apt-repository -y ppa:deadsnakes/ppa && \
+    apt-get update -qy && \
+    apt-get install --no-install-recommends -qy python3.12 python3.12-venv && \
     # install using pip and git \
-    python3 -m venv /apps/${APP_NAME}/venv && \
+    python3.12 -m venv /apps/${APP_NAME}/venv && \
     . /apps/${APP_NAME}/venv/bin/activate && \
     pip install --no-cache git+https://github.com/HIP-infrastructure/Bidsificator/@v${APP_VERSION}#egg=Bidsificator && \
-    chmod -R 755 /apps/${APP_NAME}/venv/lib/python3.10/site-packages/bidsificator/config && \
-    apt-get remove -y --purge git && \
+    chmod -R 755 /apps/${APP_NAME}/venv/lib/python3.*/site-packages/bidsificator/config && \
+    apt-get remove -y --purge git software-properties-common && \
     apt-get autoremove -y --purge && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
